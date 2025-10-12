@@ -2,6 +2,7 @@
 import { useState } from "react"
 import { Link } from "react-router-dom"
 import { ArrowLeft, Binary, ChevronLeft, ChevronRight, Code } from "lucide-react"
+import { Button } from "../../components/ui/button"
 
 interface BitElement {
   value: number
@@ -502,6 +503,9 @@ def reverse_all_bits(nums):
                     </button>
                   </div>
                 </div>
+                <Button onClick={()=> setCurrentStep(0)} variant="secondary">
+                  Reset
+                </Button>
               </div>
             </div>
 

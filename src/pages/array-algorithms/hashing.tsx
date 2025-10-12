@@ -2,6 +2,7 @@
 import { useState } from "react"
 import { Link } from "react-router-dom"
 import { ArrowLeft, Hash, ChevronLeft, ChevronRight, Code } from "lucide-react"
+import { Button } from "../../components/ui/button"
 
 interface ArrayElement {
   value: number | string
@@ -682,6 +683,9 @@ return None`,
                     </button>
                   </div>
                 </div>
+                <Button onClick={()=> setCurrentStep(0)} variant="secondary">
+                  Reset
+                </Button>
               </div>
             </div>
 

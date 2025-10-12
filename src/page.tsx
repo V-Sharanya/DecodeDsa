@@ -1,8 +1,39 @@
 import { Link } from "react-router-dom";
-import "./footer.css"
-import { Github, Linkedin, Twitter, Mail, Heart, Code2, Sparkles, ArrowRight, Zap, Award, TrendingUp, ChevronRight, BookOpen, Play, Users, Brain, Target, Database, Search, ArrowUpDown } from "lucide-react";
+import { useState, useEffect } from "react";
+import {
+  ArrowUpDown,
+  Search,
+  Database,
+  Play,
+  BookOpen,
+  Zap,
+  ChevronRight,
+  Code2,
+  Brain,
+  Target,
+  Users,
+  Award,
+  Github,
+  Linkedin,
+  Twitter,
+  ArrowUp,
+} from "lucide-react";
 
 export default function Page() {
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 400);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
  const categories = [
     {
       title: "Sorting Algorithms",
@@ -131,8 +162,8 @@ export default function Page() {
 
           <div className="flex flex-col justify-center gap-4 sm:flex-row">
             <Link
-              to="/sorting"
-              className="inline-flex items-center px-8 py-4 font-semibold text-white transition-all transform shadow-lg bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl hover:shadow-xl hover:-translate-y-1"
+              to="/about"
+              className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all"
             >
               <Play className="w-5 h-5 mr-2" /> Start Visualizing
               <ChevronRight className="w-5 h-5 ml-2" />
@@ -250,13 +281,13 @@ export default function Page() {
           </div>
 
           <div className="mt-16 text-center">
-            <button
-            
-              className="inline-flex items-center px-10 py-4 font-semibold text-indigo-700 transition-all transform bg-white shadow-lg rounded-xl hover:bg-indigo-50 hover:shadow-xl hover:-translate-y-1"
+            <Link
+              to="/about"
+              className="inline-flex items-center px-10 py-4 bg-white text-indigo-700 font-semibold rounded-xl hover:bg-indigo-50 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1"
             >
-              Start Learning Now
+              Begin Your Journey
               <ChevronRight className="w-5 h-5 ml-2" />
-            </button>
+            </Link>
           </div>
         </div>
       </section>
@@ -437,12 +468,13 @@ export default function Page() {
             <h4 className="mb-6 text-sm font-bold tracking-wider text-white uppercase">Learn</h4>
             <ul className="space-y-3 text-sm">
               <li>
-                <Link
-                  to="/sorting"
-                  className="flex items-center text-gray-400 transition-all group hover:text-blue-400"
-                >
-                  <ArrowRight className="w-0 h-4 mr-0 text-blue-400 transition-all duration-200 group-hover:w-4 group-hover:mr-2" />
-                  Sorting Algorithms
+                <Link to="/" className="hover:text-white">
+                  Home
+                </Link>
+              </li>
+              <li>
+                <Link to="/sorting" className="hover:text-white">
+                  Sorting
                 </Link>
               </li>
               <li>
@@ -455,21 +487,8 @@ export default function Page() {
                 </Link>
               </li>
               <li>
-                <Link
-                  to="/array-algorithms"
-                  className="flex items-center text-gray-400 transition-all group hover:text-blue-400"
-                >
-                  <ArrowRight className="w-0 h-4 mr-0 text-blue-400 transition-all duration-200 group-hover:w-4 group-hover:mr-2" />
-                  Array Algorithms
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/data-structures/linked-list"
-                  className="flex items-center text-gray-400 transition-all group hover:text-blue-400"
-                >
-                  <ArrowRight className="w-0 h-4 mr-0 text-blue-400 transition-all duration-200 group-hover:w-4 group-hover:mr-2" />
-                  Data Structures
+                <Link to="/about" className="hover:text-white">
+                  About Us
                 </Link>
               </li>
               <li>
@@ -604,9 +623,17 @@ export default function Page() {
             </p>
           </div>
         </div>
-      </div>
-    </footer>
-      
+      </footer>
+      {/* Scroll to Top Button */}
+      {showScrollTop && (
+        <button
+          onClick={scrollToTop}
+          className="fixed bottom-8 right-8 bg-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-blue-700 transition-opacity duration-300 z-50"
+          aria-label="Scroll to top"
+        >
+          <ArrowUp className="w-6 h-6" />
+        </button>
+      )}
     </div>
   );
 }

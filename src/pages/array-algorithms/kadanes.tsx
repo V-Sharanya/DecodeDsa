@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
 import { ArrowLeft, TrendingUp, ChevronLeft, ChevronRight, Code, Play, Pause, RotateCcw } from "lucide-react"
+import { Button } from "../../components/ui/button"
 
 interface ArrayElement {
   value: number
@@ -410,6 +411,9 @@ return maxSoFar  # ${maxSoFar}`,
                     </button>
                   </div>
                 </div>
+                <Button onClick={()=> setCurrentStep(0)} variant="secondary">
+                  Reset
+                </Button>
               </div>
             </div>
 

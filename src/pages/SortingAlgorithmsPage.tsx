@@ -295,6 +295,9 @@ function SortingAlgorithmsPage() {
                       placeholder="Enter array (e.g., 64 34 25 12 22 11 90)"
                       className="w-full px-4 py-3 rounded-lg border border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                     />
+                    <p className="mt-2 text-sm text-gray-500">
+                      💡 <strong>Tip:</strong> For arrays with 100+ elements, zoom and pan controls will be automatically enabled for better visualization.
+                    </p>
                   </div>
 
                   <button

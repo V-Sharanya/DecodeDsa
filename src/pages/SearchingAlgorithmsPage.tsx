@@ -248,6 +248,10 @@ function SearchingAlgorithmsPage() {
                   </div>
                 </div>
                 
+                <p className="text-sm text-gray-500">
+                  💡 <strong>Tip:</strong> For arrays with 100+ elements, zoom and pan controls will be automatically enabled for better visualization.
+                </p>
+                
                 <button
                   type="submit"
                   className="w-full md:w-auto inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold rounded-lg shadow-lg hover:from-green-700 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200 transform hover:-translate-y-0.5"

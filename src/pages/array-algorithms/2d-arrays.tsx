@@ -2,6 +2,7 @@
 import { useState } from "react"
 import { Link } from "react-router-dom"
 import { ArrowLeft, Grid, ChevronLeft, ChevronRight, Code } from "lucide-react"
+import { Button } from "../../components/ui/button"
 
 interface MatrixCell {
   value: number
@@ -616,6 +617,9 @@ return False`,
                     </button>
                   </div>
                 </div>
+                <Button onClick={()=> setCurrentStep(0)} variant="secondary">
+                  Reset
+                </Button>
               </div>
             </div>
 

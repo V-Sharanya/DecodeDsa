@@ -17,6 +17,7 @@ import TwoDArraysPage from "./pages/array-algorithms/2d-arrays"
 import TreeVisualizerPage from "./pages/TreeVisualizerPage"
 import ExpressionConverterPage from "./pages/ExpressionConverterPage"
 import GraphVisualizerPage from "./pages/GraphVisualizerPages"
+import AboutUsPage from "./pages/AboutUsPage"
 import Lenis from 'lenis'
 import { useEffect } from "react"
 
@@ -63,6 +64,7 @@ function App() {
       <Route path="/array-algorithms/2d-arrays" element={<TwoDArraysPage />} />
       <Route path="/data-structures/binary-tree" element={<TreeVisualizerPage />} />
       <Route path="/operations/expression-converter" element={<ExpressionConverterPage />} />
+      <Route path="/about" element={<AboutUsPage />} />
     </Routes>
   )
 }

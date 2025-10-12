@@ -48,6 +48,7 @@
 - ✅ Time & space complexity details for each algorithm
 - ✅ Beautiful, responsive UI with dark/light theme toggle
 - ✅ Easy-to-navigate tabbed layout for quick access to topics
+- ✅ **Canvas-based visualization with zoom & pan for large arrays (100+ elements)**
 
 ---
 
@@ -158,4 +159,6 @@ Made with ❤️ by [V. Sharanya](https://github.com/V-Sharanya)
 - [ ] Add speed control for visualization
 - [ ] Add time complexity animation chart
 - [ ] Add sound effects for sorting (fun UX!)
+- [x] **Canvas-based zoom & pan for large arrays (100+)** - ✅ Completed
+- [ ] Aggregated histogram view for very large arrays (1000+)
 

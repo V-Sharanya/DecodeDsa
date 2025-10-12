@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "./ui/card"
 import { Badge } from "./ui/badge"
 import { ArrowUpDown, Code, Play, Pause, RotateCcw, Zap } from "lucide-react"
 import { generateSteps, type Step } from "../utils/sortingAlgorithms"
+import ZoomableArrayCanvas from "./ZoomableArrayCanvas"
 
 interface ParallelSortingVisualizerProps {
   algorithm1: string
@@ -35,7 +36,8 @@ const ParallelSortingVisualizer: React.FC<ParallelSortingVisualizerProps> = ({
 
   useEffect(() => {
     const array = inputArray
-      .split(" ")
+      .split(/[\s,]+/)
+      .filter(n => n)
       .map(Number)
       .filter((n) => !isNaN(n))
     
@@ -100,6 +102,29 @@ const ParallelSortingVisualizer: React.FC<ParallelSortingVisualizerProps> = ({
     if (step.pivot === index) return "bg-purple-500"
 
     return "bg-blue-500"
+  }
+
+  const getElementColorHex = (index: number, steps: Step[], stepIndex: number): string => {
+    const step = steps[stepIndex]
+    if (!step) return "#3b82f6" // blue-500
+
+    if (step.sorted?.includes(index)) return "#22c55e" // green-500
+    if (step.swapping?.includes(index)) return "#ef4444" // red-500
+    if (step.comparing?.includes(index)) return "#eab308" // yellow-500
+    if (step.pivot === index) return "#a855f7" // purple-500
+
+    return "#3b82f6" // blue-500
+  }
+
+  const prepareCanvasElements = (steps: Step[], stepIndex: number) => {
+    const step = steps[stepIndex]
+    if (!step) return []
+
+    return step.array.map((value, index) => ({
+      value,
+      index,
+      color: getElementColorHex(index, steps, stepIndex),
+    }))
   }
 
   if (steps1.length === 0 || steps2.length === 0) {
@@ -183,18 +208,28 @@ const ParallelSortingVisualizer: React.FC<ParallelSortingVisualizerProps> = ({
             </Badge>
           </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-2 p-4 bg-gray-50 rounded-lg min-h-[80px]">
-            {steps1[currentStep1]?.array.map((value, index) => (
-              <div key={index} className="relative">
-                <div
-                  className={`w-12 h-12 flex items-center justify-center text-white rounded-md font-semibold transition-all duration-300 ${getElementColor(index, steps1, currentStep1)}`}
-                >
-                  {value}
+          {steps1[currentStep1]?.array.length >= 100 ? (
+            <div className="flex justify-center">
+              <ZoomableArrayCanvas
+                elements={prepareCanvasElements(steps1, currentStep1)}
+                width={Math.min(500, typeof window !== 'undefined' ? window.innerWidth / 2 - 100 : 500)}
+                height={180}
+              />
+            </div>
+          ) : (
+            <div className="flex flex-wrap items-center justify-center gap-2 p-4 bg-gray-50 rounded-lg min-h-[80px]">
+              {steps1[currentStep1]?.array.map((value, index) => (
+                <div key={index} className="relative">
+                  <div
+                    className={`w-12 h-12 flex items-center justify-center text-white rounded-md font-semibold transition-all duration-300 ${getElementColor(index, steps1, currentStep1)}`}
+                  >
+                    {value}
+                  </div>
+                  <div className="text-xs text-gray-500 text-center mt-1">{index}</div>
                 </div>
-                <div className="text-xs text-gray-500 text-center mt-1">{index}</div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
 
           <div className="mt-4 p-3 bg-blue-50 rounded-md">
             <p className="text-sm text-blue-800">{steps1[currentStep1]?.description}</p>
@@ -213,18 +248,28 @@ const ParallelSortingVisualizer: React.FC<ParallelSortingVisualizerProps> = ({
             </Badge>
           </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-2 p-4 bg-gray-50 rounded-lg min-h-[80px]">
-            {steps2[currentStep2]?.array.map((value, index) => (
-              <div key={index} className="relative">
-                <div
-                  className={`w-12 h-12 flex items-center justify-center text-white rounded-md font-semibold transition-all duration-300 ${getElementColor(index, steps2, currentStep2)}`}
-                >
-                  {value}
+          {steps2[currentStep2]?.array.length >= 100 ? (
+            <div className="flex justify-center">
+              <ZoomableArrayCanvas
+                elements={prepareCanvasElements(steps2, currentStep2)}
+                width={Math.min(500, typeof window !== 'undefined' ? window.innerWidth / 2 - 100 : 500)}
+                height={180}
+              />
+            </div>
+          ) : (
+            <div className="flex flex-wrap items-center justify-center gap-2 p-4 bg-gray-50 rounded-lg min-h-[80px]">
+              {steps2[currentStep2]?.array.map((value, index) => (
+                <div key={index} className="relative">
+                  <div
+                    className={`w-12 h-12 flex items-center justify-center text-white rounded-md font-semibold transition-all duration-300 ${getElementColor(index, steps2, currentStep2)}`}
+                  >
+                    {value}
+                  </div>
+                  <div className="text-xs text-gray-500 text-center mt-1">{index}</div>
                 </div>
-                <div className="text-xs text-gray-500 text-center mt-1">{index}</div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
 
           <div className="mt-4 p-3 bg-purple-50 rounded-md">
             <p className="text-sm text-purple-800">{steps2[currentStep2]?.description}</p>

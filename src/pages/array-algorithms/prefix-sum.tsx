@@ -4,6 +4,7 @@ import type React from "react"
 import { useState } from "react"
 import { Link } from "react-router-dom"
 import { ArrowLeft, Calculator, ChevronLeft, ChevronRight, Code } from "lucide-react"
+import { Button } from "../../components/ui/button"
 
 interface ArrayElement {
   value: number
@@ -277,6 +278,9 @@ range_sum = prefix_sum[end + 1] - prefix_sum[start]`
                 </div>
               </div>
               <p className="text-gray-600 mb-4">{steps[currentStep].description}</p>
+              <Button onClick={()=> setCurrentStep(0)} variant="secondary">
+                Reset
+              </Button>
             </div>
 
             {/* Array Visualization */}
