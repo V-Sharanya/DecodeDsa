@@ -440,6 +440,7 @@ const SortingVisualizer: React.FC<SortingVisualizerProps> = ({ algorithm, inputA
   const [steps, setSteps] = useState<Step[]>([])
   const [currentStep, setCurrentStep] = useState(0)
   const [sortResult, setSortResult] = useState<SortResult | null>(null)
+  const [originalArray, setOriginalArray] = useState<number[]>([])
 
   const generateSteps = useCallback((algorithm: string, array: number[]): Step[] => {
     const steps: Step[] = []
@@ -474,6 +475,7 @@ const SortingVisualizer: React.FC<SortingVisualizerProps> = ({ algorithm, inputA
       .split(" ")
       .map(Number)
       .filter((n) => !isNaN(n))
+    setOriginalArray([...array])
     const newSteps = generateSteps(algorithm, array)
     setSteps(newSteps)
     setCurrentStep(0)
@@ -502,6 +504,21 @@ const SortingVisualizer: React.FC<SortingVisualizerProps> = ({ algorithm, inputA
 
   const handleReset = () => {
     setCurrentStep(0)
+  }
+
+  const handleResetToOriginal = () => {
+    const newSteps = generateSteps(algorithm, originalArray)
+    setSteps(newSteps)
+    setCurrentStep(0)
+    
+    // Recalculate sort metrics
+    const comparisons = newSteps.filter((step) => step.comparing?.length).length
+    const swaps = newSteps.filter((step) => step.swapping?.length).length
+    setSortResult({
+      comparisons,
+      swaps,
+      steps: newSteps.length,
+    })
   }
 
   const getElementColor = (index: number): string => {
@@ -789,64 +806,52 @@ function heapify(arr, n, i) {
           <Button onClick={handleReset} variant="secondary">
             Reset
           </Button>
-          <Button onClick={handlePrevious} disabled={currentStep === 0} variant="secondary">
+          <Button onClick={handleResetToOriginal} variant="secondary" className="border-red-500 text-red-500 hover:bg-red-50">
+            Reset to Original Array
+          </Button>
+          <Button onClick={handlePrevious} disabled={currentStep === 0}>
             Previous
           </Button>
           <Button onClick={handleNext} disabled={currentStep === steps.length - 1}>
             Next
           </Button>
         </div>
-        <Badge variant="default" className="text-sm">
+        <div className="text-sm text-gray-600">
           Step {currentStep + 1} of {steps.length}
-        </Badge>
+        </div>
       </div>
 
-      {/* Step Description */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center">
-            <Code className="w-5 h-5 mr-2" />
-            Step Description
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-gray-700 leading-relaxed">{steps[currentStep]?.description}</p>
-        </CardContent>
-      </Card>
-
-      {/* Code Display */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Code Execution</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <pre className="bg-gray-900 text-green-400 p-4 rounded-md overflow-x-auto text-sm font-mono">
-            <code>{steps[currentStep]?.code}</code>
-          </pre>
-        </CardContent>
-      </Card>
-
-      {/* Complete Algorithm Code - Show only when at the last step */}
-      {currentStep === steps.length - 1 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Complete {algorithm} Implementation</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <pre className="bg-gray-900 text-green-400 p-4 rounded-md overflow-x-auto text-sm font-mono max-h-96 overflow-y-auto">
-              <code>{getCompleteAlgorithmCode(algorithm)}</code>
-            </pre>
-            <div className="mt-4 p-3 bg-blue-50 rounded-md">
-              <p className="text-sm text-blue-800">
-                <strong>💡 Complete Implementation:</strong> This is the full {algorithm} algorithm that you just
-                visualized step by step. You can copy this code and use it in your own projects!
-              </p>
+      {/* Step Description and Code */}
+      <Card className="border-2 border-dashed border-gray-300">
+        <CardHeader className="p-6">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-blue-100 rounded-full">
+              <Code className="w-6 h-6 text-blue-600" />
             </div>
-          </CardContent>
-        </Card>
-      )}
+            <CardTitle className="text-lg font-semibold">Step Details</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent className="p-6 space-y-4">
+          <div>
+            <h4 className="text-md font-semibold mb-2">Description:</h4>
+            <p className="text-gray-700">{steps[currentStep]?.description}</p>
+          </div>
+          <div>
+            <h4 className="text-md font-semibold mb-2">Code Snippet:</h4>
+            <pre className="bg-gray-100 p-4 rounded-lg overflow-x-auto">
+              <code className="text-sm text-gray-800 whitespace-pre-wrap">{steps[currentStep]?.code}</code>
+            </pre>
+          </div>
+          <div>
+            <h4 className="text-md font-semibold mb-2">Complete {algorithm} Code:</h4>
+            <pre className="bg-gray-100 p-4 rounded-lg overflow-x-auto">
+              <code className="text-sm text-gray-800 whitespace-pre-wrap">{getCompleteAlgorithmCode(algorithm)}</code>
+            </pre>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }
 
-export default SortingVisualizer
+export default SortingVisualizer;
