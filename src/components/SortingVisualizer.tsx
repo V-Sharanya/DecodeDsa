@@ -3,7 +3,7 @@ import { useEffect, useState, useCallback } from "react"
 import { Button } from "./ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card"
 import { Badge } from "./ui/badge"
-import { ArrowUpDown, Code } from "lucide-react"
+import { ArrowUpDown, Code, Play, Pause, RotateCcw } from "lucide-react"
 import ZoomableArrayCanvas from "./ZoomableArrayCanvas"
 
 interface SortingVisualizerProps {
@@ -198,6 +198,8 @@ const mergeSort = (arr: number[], steps: Step[]): Step[] => {
       array: [...arr],
       description: `Divide: Splitting array from index ${left} to ${right} at middle ${mid}`,
       code: `// Divide phase (depth ${depth})\nlet mid = Math.floor((${left} + ${right}) / 2); // ${mid}`,
+      pivot: mid,
+      comparing: Array.from({ length: right - left + 1 }, (_, i) => left + i).filter(idx => idx !== mid),
     })
 
     mergeSortHelper(arr, left, mid, depth + 1)
@@ -210,6 +212,7 @@ const mergeSort = (arr: number[], steps: Step[]): Step[] => {
       array: [...arr],
       description: `Merge: Combining [${leftArr.join(", ")}] and [${rightArr.join(", ")}]`,
       code: `// Merge phase\nleft = [${leftArr.join(", ")}]\nright = [${rightArr.join(", ")}]`,
+      comparing: Array.from({ length: leftArr.length }, (_, i) => left + i).concat(Array.from({ length: rightArr.length }, (_, i) => mid + 1 + i)),
     })
 
     let i = 0,
@@ -223,6 +226,7 @@ const mergeSort = (arr: number[], steps: Step[]): Step[] => {
           array: [...arr],
           description: `${leftArr[i]} ≤ ${rightArr[j]}, so place ${leftArr[i]} at position ${k}`,
           code: `arr[${k}] = ${leftArr[i]}; // ${leftArr[i]} ≤ ${rightArr[j]}`,
+          sorted: [k + i],
         })
         i++
       } else {
@@ -231,6 +235,7 @@ const mergeSort = (arr: number[], steps: Step[]): Step[] => {
           array: [...arr],
           description: `${rightArr[j]} < ${leftArr[i]}, so place ${rightArr[j]} at position ${k}`,
           code: `arr[${k}] = ${rightArr[j]}; // ${rightArr[j]} < ${leftArr[i]}`,
+          sorted: [k + i],
         })
         j++
       }
@@ -243,6 +248,7 @@ const mergeSort = (arr: number[], steps: Step[]): Step[] => {
         array: [...arr],
         description: `Copy remaining element ${leftArr[i]} to position ${k}`,
         code: `arr[${k}] = ${leftArr[i]}; // Copy remaining`,
+        sorted: Array.from({ length: k + 1 }, (_, idx) => idx).filter(idx => idx >= left),
       })
       i++
       k++
@@ -254,6 +260,7 @@ const mergeSort = (arr: number[], steps: Step[]): Step[] => {
         array: [...arr],
         description: `Copy remaining element ${rightArr[j]} to position ${k}`,
         code: `arr[${k}] = ${rightArr[j]}; // Copy remaining`,
+        sorted: Array.from({ length: k + 1 }, (_, idx) => idx).filter(idx => idx >= mid + 1),
       })
       j++
       k++
@@ -522,6 +529,8 @@ const radixSort = (arr: number[], steps: Step[]): Step[] => {
 const SortingVisualizer: React.FC<SortingVisualizerProps> = ({ algorithm, inputArray }) => {
   const [steps, setSteps] = useState<Step[]>([])
   const [currentStep, setCurrentStep] = useState(0)
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [playSpeed, setPlaySpeed] = useState(1000) // milliseconds
   const [sortResult, setSortResult] = useState<SortResult | null>(null)
 
   const generateSteps = useCallback((algorithm: string, array: number[]): Step[] => {
@@ -573,6 +582,19 @@ const SortingVisualizer: React.FC<SortingVisualizerProps> = ({ algorithm, inputA
     })
   }, [algorithm, inputArray, generateSteps])
 
+  // Auto-play functionality
+  useEffect(() => {
+    let interval: NodeJS.Timeout
+    if (isPlaying && currentStep < steps.length - 1) {
+      interval = setInterval(() => {
+        setCurrentStep(prev => prev + 1)
+      }, playSpeed)
+    } else if (currentStep >= steps.length - 1) {
+      setIsPlaying(false)
+    }
+    return () => clearInterval(interval)
+  }, [isPlaying, currentStep, steps.length, playSpeed])
+
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1)
@@ -587,6 +609,11 @@ const SortingVisualizer: React.FC<SortingVisualizerProps> = ({ algorithm, inputA
 
   const handleReset = () => {
     setCurrentStep(0)
+    setIsPlaying(false)
+  }
+
+  const togglePlay = () => {
+    setIsPlaying(!isPlaying)
   }
 
   const getElementColor = (index: number): string => {
@@ -938,9 +965,6 @@ function countingSort(arr, exp) {
             Next
           </Button>
         </div>
-        <Badge variant="default" className="text-sm">
-          Step {currentStep + 1} of {steps.length}
-        </Badge>
       </div>
 
       <Card>

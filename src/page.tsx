@@ -526,7 +526,7 @@ export default function Page() {
                   <div className="w-5 h-5 bg-gradient-to-r from-blue-500 to-purple-500 rounded flex items-center justify-center flex-shrink-0 mt-0.5">
                     <span className="text-xs">📍</span>
                   </div>
-                  <span className="text-gray-400">Hyderabad, India</span>
+                  <span className="text-gray-400">Madhya Pradesh, India</span>
                 </li>
               </ul>
             </div>

@@ -5,7 +5,7 @@ import { useEffect, useState, useCallback } from "react"
 import { Button } from "./ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card"
 import { Badge } from "./ui/badge"
-import { CheckCircle, XCircle, Search, Target } from "lucide-react"
+import { CheckCircle, XCircle, Search, Target, Play, Pause, RotateCcw } from "lucide-react"
 import ZoomableArrayCanvas from "./ZoomableArrayCanvas"
 
 interface SearchingVisualizerProps {
@@ -31,6 +31,8 @@ interface Step {
 const SearchingVisualizer: React.FC<SearchingVisualizerProps> = ({ algorithm, inputArray, targetValue }) => {
   const [steps, setSteps] = useState<Step[]>([])
   const [currentStep, setCurrentStep] = useState(0)
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [playSpeed, setPlaySpeed] = useState(1000) // milliseconds
   const [searchResult, setSearchResult] = useState<{ found: boolean; index: number; comparisons: number } | null>(null)
 
   const generateSteps = useCallback((algorithm: string, array: number[], target: number): Step[] => {
@@ -93,6 +95,19 @@ const SearchingVisualizer: React.FC<SearchingVisualizerProps> = ({ algorithm, in
       })
     }
   }, [algorithm, inputArray, targetValue, generateSteps])
+
+  // Auto-play functionality
+  useEffect(() => {
+    let interval: NodeJS.Timeout
+    if (isPlaying && currentStep < steps.length - 1) {
+      interval = setInterval(() => {
+        setCurrentStep(prev => prev + 1)
+      }, playSpeed)
+    } else if (currentStep >= steps.length - 1) {
+      setIsPlaying(false)
+    }
+    return () => clearInterval(interval)
+  }, [isPlaying, currentStep, steps.length, playSpeed])
 
   const linearSearch = (arr: number[], target: number, steps: Step[]): Step[] => {
     steps.push({
@@ -241,6 +256,11 @@ const SearchingVisualizer: React.FC<SearchingVisualizerProps> = ({ algorithm, in
 
   const handleReset = () => {
     setCurrentStep(0)
+    setIsPlaying(false)
+  }
+
+  const togglePlay = () => {
+    setIsPlaying(!isPlaying)
   }
 
   const getElementColor = (index: number): string => {
@@ -486,21 +506,48 @@ if (result !== -1) {
       </div>
 
       {/* Controls */}
-      <div className="flex items-center justify-center md:justify-between flex-wrap gap-4 md:gap-2 bg-white rounded-lg p-4 shadow-sm border">
-        <div className="flex space-x-2">
-          <Button onClick={handleReset} variant="secondary">
-            Reset
-          </Button>
-          <Button onClick={handlePrevious} disabled={currentStep === 0} variant="secondary">
-            Previous
-          </Button>
-          <Button onClick={handleNext} disabled={currentStep === steps.length - 1}>
-            Next
-          </Button>
+      <div className="bg-white rounded-lg p-4 shadow-sm border">
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div className="flex items-center space-x-2">
+            <Button onClick={handleReset} variant="secondary" size="sm">
+              <RotateCcw className="w-4 h-4 mr-1" />
+              Reset
+            </Button>
+            <Button onClick={handlePrevious} disabled={currentStep === 0} variant="secondary" size="sm">
+              Previous
+            </Button>
+            <Button 
+              onClick={togglePlay} 
+              variant={isPlaying ? "secondary" : "primary"}
+              size="sm"
+            >
+              {isPlaying ? <Pause className="w-4 h-4 mr-1" /> : <Play className="w-4 h-4 mr-1" />}
+              {isPlaying ? "Pause" : "Play"}
+            </Button>
+            <Button onClick={handleNext} disabled={currentStep === steps.length - 1} size="sm">
+              Next
+            </Button>
+          </div>
+
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
+              <label className="text-sm text-gray-600">Speed:</label>
+              <select 
+                value={playSpeed} 
+                onChange={(e) => setPlaySpeed(Number(e.target.value))}
+                className="text-sm border rounded px-2 py-1"
+              >
+                <option value={2000}>0.5x</option>
+                <option value={1000}>1x</option>
+                <option value={500}>2x</option>
+                <option value={250}>4x</option>
+              </select>
+            </div>
+            <Badge variant="default" className="text-sm">
+              Step {currentStep + 1} of {steps.length}
+            </Badge>
+          </div>
         </div>
-        <Badge variant="default" className="text-sm">
-          Step {currentStep + 1} of {steps.length}
-        </Badge>
       </div>
 
       {/* Step Description */}
