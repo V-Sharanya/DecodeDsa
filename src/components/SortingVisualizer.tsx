@@ -5,7 +5,7 @@ import { useEffect, useState, useCallback } from "react"
 import { Button } from "./ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card"
 import { Badge } from "./ui/badge"
-import { ArrowUpDown, Code } from "lucide-react"
+import { ArrowUpDown, Code, ZoomIn, ZoomOut, Move, RotateCcw, ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from "lucide-react"
 
 interface SortingVisualizerProps {
   algorithm: string
@@ -440,6 +440,9 @@ const SortingVisualizer: React.FC<SortingVisualizerProps> = ({ algorithm, inputA
   const [steps, setSteps] = useState<Step[]>([])
   const [currentStep, setCurrentStep] = useState(0)
   const [sortResult, setSortResult] = useState<SortResult | null>(null)
+  const [zoomLevel, setZoomLevel] = useState(1)
+  const [panOffset, setPanOffset] = useState({ x: 0, y: 0 })
+  const [isLargeArray, setIsLargeArray] = useState(false)
 
   const generateSteps = useCallback((algorithm: string, array: number[]): Step[] => {
     const steps: Step[] = []
@@ -478,6 +481,13 @@ const SortingVisualizer: React.FC<SortingVisualizerProps> = ({ algorithm, inputA
     setSteps(newSteps)
     setCurrentStep(0)
 
+    // Check if array is large (15+ elements) and enable advanced features
+    setIsLargeArray(array.length >= 15)
+    
+    // Reset zoom and pan for new array
+    setZoomLevel(1)
+    setPanOffset({ x: 0, y: 0 })
+
     // Calculate sort metrics
     const comparisons = newSteps.filter((step) => step.comparing?.length).length
     const swaps = newSteps.filter((step) => step.swapping?.length).length
@@ -502,6 +512,38 @@ const SortingVisualizer: React.FC<SortingVisualizerProps> = ({ algorithm, inputA
 
   const handleReset = () => {
     setCurrentStep(0)
+  }
+
+  // Zoom and Pan controls
+  const handleZoomIn = () => {
+    setZoomLevel(prev => Math.min(prev + 0.2, 3))
+  }
+
+  const handleZoomOut = () => {
+    setZoomLevel(prev => Math.max(prev - 0.2, 0.5))
+  }
+
+  const handlePan = (direction: 'left' | 'right' | 'up' | 'down') => {
+    const panStep = 50
+    setPanOffset(prev => {
+      switch (direction) {
+        case 'left':
+          return { ...prev, x: prev.x - panStep }
+        case 'right':
+          return { ...prev, x: prev.x + panStep }
+        case 'up':
+          return { ...prev, y: prev.y - panStep }
+        case 'down':
+          return { ...prev, y: prev.y + panStep }
+        default:
+          return prev
+      }
+    })
+  }
+
+  const handleResetView = () => {
+    setZoomLevel(1)
+    setPanOffset({ x: 0, y: 0 })
   }
 
   const getElementColor = (index: number): string => {
@@ -745,17 +787,26 @@ function heapify(arr, n, i) {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center justify-center gap-2 p-4 bg-gray-50 rounded-lg min-h-[80px]">
-          {steps[currentStep]?.array.map((value, index) => (
-            <div key={index} className="relative">
-              <div
-                className={`w-12 h-12 flex items-center justify-center text-white rounded-md font-semibold transition-all duration-300 ${getElementColor(index)}`}
-              >
-                {value}
+        <div className={`${isLargeArray ? 'overflow-hidden' : ''} bg-gray-50 rounded-lg min-h-[80px] p-4`}>
+          <div 
+            className="flex flex-wrap items-center justify-center gap-2 transition-transform duration-200"
+            style={{
+              transform: isLargeArray 
+                ? `scale(${zoomLevel}) translate(${panOffset.x}px, ${panOffset.y}px)`
+                : undefined
+            }}
+          >
+            {steps[currentStep]?.array.map((value, index) => (
+              <div key={index} className="relative">
+                <div
+                  className={`w-12 h-12 flex items-center justify-center text-white rounded-md font-semibold transition-all duration-300 ${getElementColor(index)}`}
+                >
+                  {value}
+                </div>
+                <div className="text-xs text-gray-500 text-center mt-1">{index}</div>
               </div>
-              <div className="text-xs text-gray-500 text-center mt-1">{index}</div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
 
@@ -800,6 +851,76 @@ function heapify(arr, n, i) {
           Step {currentStep + 1} of {steps.length}
         </Badge>
       </div>
+
+      {/* Zoom and Pan Controls - Only show for large arrays (15+ elements) */}
+      {isLargeArray && (
+        <div className="bg-white rounded-lg p-4 shadow-sm border">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold flex items-center">
+              <Move className="w-5 h-5 mr-2 text-purple-600" />
+              View Controls (Large Array Detected)
+            </h3>
+            <div className="text-sm text-gray-600">
+              Array Size: <span className="font-semibold text-purple-600">{steps[currentStep]?.array.length} elements</span>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Zoom Controls */}
+            <div className="space-y-2">
+              <h4 className="text-sm font-medium text-gray-700">Zoom Controls</h4>
+              <div className="flex space-x-2">
+                <Button onClick={handleZoomIn} variant="secondary" size="sm" disabled={zoomLevel >= 3}>
+                  <ZoomIn className="w-4 h-4" />
+                </Button>
+                <Button onClick={handleZoomOut} variant="secondary" size="sm" disabled={zoomLevel <= 0.5}>
+                  <ZoomOut className="w-4 h-4" />
+                </Button>
+                <div className="flex items-center px-2 py-1 bg-gray-100 rounded text-sm">
+                  {Math.round(zoomLevel * 100)}%
+                </div>
+              </div>
+            </div>
+
+            {/* Pan Controls */}
+            <div className="space-y-2">
+              <h4 className="text-sm font-medium text-gray-700">Pan Controls</h4>
+              <div className="grid grid-cols-3 gap-1 w-fit">
+                <div></div>
+                <Button onClick={() => handlePan('up')} variant="secondary" size="sm">
+                  <ChevronUp className="w-4 h-4" />
+                </Button>
+                <div></div>
+                <Button onClick={() => handlePan('left')} variant="secondary" size="sm">
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                <Button onClick={handleResetView} variant="secondary" size="sm">
+                  <RotateCcw className="w-4 h-4" />
+                </Button>
+                <Button onClick={() => handlePan('right')} variant="secondary" size="sm">
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+                <div></div>
+                <Button onClick={() => handlePan('down')} variant="secondary" size="sm">
+                  <ChevronDown className="w-4 h-4" />
+                </Button>
+                <div></div>
+              </div>
+            </div>
+
+            {/* Info */}
+            <div className="space-y-2">
+              <h4 className="text-sm font-medium text-gray-700">Tips</h4>
+              <div className="text-xs text-gray-600 space-y-1">
+                <p>• Use zoom to see elements clearly</p>
+                <p>• Pan to navigate across the array</p>
+                <p>• Reset view to return to default</p>
+                <p>• Best for arrays with 15+ elements</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Step Description */}
       <Card>
