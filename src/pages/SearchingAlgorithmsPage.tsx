@@ -5,7 +5,7 @@ import ParallelSearchingVisualizer from '../components/ParallelSearchingVisualiz
 import { getAvailableAlgorithms } from '../utils/searchingAlgorithms';
 import type { SearchingAlgorithm } from '../types/algorithms';
 
-function SearchingAlgorithmsPage() {
+function SearchingAlgorithmsPage(){
   const searchingAlgorithms = getAvailableAlgorithms();
   
   const [selectedAlgorithm, setSelectedAlgorithm] = useState<SearchingAlgorithm | null>(null);
