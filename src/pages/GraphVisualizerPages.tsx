@@ -63,10 +63,7 @@ type AlgorithmType =
   | "dfs"
   | "dijkstra"
   | "bellman-ford"
-  | "kruskal"
-  | "prim"
-  | "topological"
-  | "floyd-warshall";
+  | "kruskal";
 
 const algorithmInfo: Record<
   AlgorithmType,
@@ -109,25 +106,6 @@ const algorithmInfo: Record<
     description: "Finds minimum spanning tree by sorting edges.",
     complexity: "O(E log E)",
     useCase: "Network design, clustering, minimum cost connections",
-  },
-  prim: {
-    name: "Prim's Algorithm",
-    description:
-      "Finds minimum spanning tree by growing from a starting vertex.",
-    complexity: "O(E log V)",
-    useCase: "Network design, approximation algorithms",
-  },
-  topological: {
-    name: "Topological Sort",
-    description: "Linear ordering of vertices in a directed acyclic graph.",
-    complexity: "O(V + E)",
-    useCase: "Task scheduling, dependency resolution, course prerequisites",
-  },
-  "floyd-warshall": {
-    name: "Floyd-Warshall Algorithm",
-    description: "Finds shortest paths between all pairs of vertices.",
-    complexity: "O(V³)",
-    useCase: "All-pairs shortest paths, transitive closure",
   },
 };
 
@@ -542,6 +520,98 @@ function GraphVisualizerPage() {
     addToHistory(`🔍 Started DFS from node ${startValue}`);
   };
 
+  const runKruskal = async () => {
+    if (!graph.isWeighted) {
+      addToHistory("❌ Error: Kruskal's algorithm requires a weighted graph");
+      return;
+    }
+
+    setIsAnimating(true);
+    const steps: any[] = [];
+    const mst: string[] = [];
+    let mstWeight = 0;
+
+    // 1. Sort all edges by weight
+    const sortedEdges = [...graph.edges].sort(
+      (a, b) => (a.weight || 0) - (b.weight || 0)
+    );
+
+    steps.push({
+      type: "start",
+      message: "Starting Kruskal's algorithm: Edges sorted by weight.",
+      sortedEdges: sortedEdges.map((e) => e.id),
+    });
+
+    // 2. Initialize DSU
+    const parent = new Map<string, string>();
+    graph.nodes.forEach((node) => parent.set(node.id, node.id));
+
+    const find = (nodeId: string): string => {
+      if (parent.get(nodeId) === nodeId) return nodeId;
+      const root = find(parent.get(nodeId)!);
+      parent.set(nodeId, root); // Path compression
+      return root;
+    };
+
+    const union = (id1: string, id2: string) => {
+      const root1 = find(id1);
+      const root2 = find(id2);
+      if (root1 !== root2) {
+        parent.set(root2, root1);
+      }
+    };
+
+    // 3. Iterate through sorted edges
+    for (const edge of sortedEdges) {
+      steps.push({
+        type: "check-edge",
+        edgeId: edge.id,
+        message: `Checking edge (${edge.from} to ${edge.to}) with weight ${edge.weight}`,
+        mst,
+        mstWeight,
+      });
+
+      const rootFrom = find(edge.from);
+      const rootTo = find(edge.to);
+
+      if (rootFrom !== rootTo) {
+        // Add edge to MST
+        mst.push(edge.id);
+        mstWeight += edge.weight || 0;
+        union(edge.from, edge.to);
+
+        steps.push({
+          type: "add-edge",
+          edgeId: edge.id,
+          message: `Added edge to MST. Current weight: ${mstWeight}`,
+          mst: [...mst],
+          mstWeight,
+        });
+      } else {
+        // Edge creates a cycle
+        steps.push({
+          type: "skip-edge",
+          edgeId: edge.id,
+          message: `Skipping edge, it would form a cycle.`,
+          mst: [...mst],
+          mstWeight,
+        });
+      }
+    }
+
+    steps.push({
+      type: "complete",
+      message: `Kruskal's algorithm complete. MST weight: ${mstWeight}`,
+      mst: [...mst],
+      mstWeight,
+    });
+
+    setAlgorithmSteps(steps);
+    setCurrentStep(0);
+    addToHistory(`🌳 Started Kruskal's algorithm`);
+  };
+
+
   const runDijkstra = async () => {
     if (!graph.isWeighted) {
       addToHistory("❌ Error: Dijkstra's algorithm requires a weighted graph");
@@ -661,28 +731,32 @@ function GraphVisualizerPage() {
   };
 
   // Helper to apply a single step to the graph and log it
-  const applyStep = useCallback((step: any, index: number) => {
-    setGraph((prev) => ({
-      ...prev,
-      nodes: prev.nodes.map((node) => ({
-        ...node,
-        isHighlighted: step.nodeId === node.id,
-        isVisited: step.visited?.has(node.id) || false,
-        isStart: step.type === "start" && step.nodeId === node.id,
-        distance: step.distances?.get(node.id),
-      })),
-      edges: prev.edges.map((edge) => ({
-        ...edge,
-        isHighlighted:
-          (step.edgeFrom === edge.from && step.edgeTo === edge.to) ||
-          (step.edgeFrom === edge.to && step.edgeTo === edge.from),
-        isVisited: step.visited?.has(edge.from) && step.visited?.has(edge.to),
-      })),
-    }));
-    if (step?.message) {
-      addToHistory(`📍 Step ${index + 1}: ${step.message}`);
-    }
-  }, []);
+  const applyStep = useCallback(
+    (step: any, index: number) => {
+      setGraph((prev) => ({
+        ...prev,
+        nodes: prev.nodes.map((node) => ({
+          ...node,
+          isHighlighted: step.nodeId === node.id,
+          isVisited: step.visited?.has(node.id) || false,
+          isStart: step.type === "start" && step.nodeId === node.id,
+          distance: step.distances?.get(node.id),
+        })),
+        edges: prev.edges.map((edge) => ({
+          ...edge,
+          isHighlighted:
+            step.edgeId === edge.id ||
+            ((step.edgeFrom === edge.from && step.edgeTo === edge.to) ||
+              (step.edgeFrom === edge.to && step.edgeTo === edge.from)),
+          isVisited: step.mst?.includes(edge.id) || (step.visited?.has(edge.from) && step.visited?.has(edge.to)),
+        })),
+      }));
+      if (step?.message) {
+        addToHistory(`📍 Step ${index + 1}: ${step.message}`);
+      }
+    },
+    [graph.isDirected] // Dependency for edge direction check
+  );
 
   // Single controlled animation loop driven by currentStep
   useEffect(() => {
@@ -827,6 +901,9 @@ function GraphVisualizerPage() {
       case "dijkstra":
         runDijkstra();
         break;
+      case "kruskal":
+        runKruskal();
+        break;
       default:
         addToHistory(`❌ Algorithm ${selectedAlgorithm} not implemented yet`);
     }
@@ -909,15 +986,6 @@ function GraphVisualizerPage() {
                   Social networks, GPS navigation, web crawling
                 </p>
               </div>
-              <div className="bg-white dark:bg-slate-800 rounded-lg p-4">
-                <div className="flex items-center space-x-2 mb-2">
-                  <Zap className="w-4 h-4 text-purple-600" />
-                  <span className="font-semibold text-purple-800">Types</span>
-                </div>
-                <p className="text-sm text-purple-700">
-                  Directed, undirected, weighted, unweighted
-                </p>
-              </div>
             </div>
           </div>
         )}
@@ -955,12 +1023,10 @@ function GraphVisualizerPage() {
                 Algorithm
               </h2>
               <div className="grid grid-cols-2 gap-3">
-                {(
-                  ["bfs", "dfs", "dijkstra", "bellman-ford"] as AlgorithmType[]
-                ).map((algorithm) => (
+                {Object.keys(algorithmInfo).map((algorithm) => (
                   <button
                     key={algorithm}
-                    onClick={() => setSelectedAlgorithm(algorithm)}
+                    onClick={() => setSelectedAlgorithm(algorithm as AlgorithmType)}
                     className={`p-3 rounded-xl border-2 transition-all duration-200 text-sm ${
                       selectedAlgorithm === algorithm
                         ? "border-purple-500 bg-purple-50 text-purple-700"
@@ -968,7 +1034,7 @@ function GraphVisualizerPage() {
                     }`}
                   >
                     <div className="font-semibold">
-                      {algorithmInfo[algorithm].name.split(" ")[0]}
+                      {algorithmInfo[algorithm as AlgorithmType].name.split(" ")[0]}
                     </div>
                   </button>
                 ))}
@@ -1095,7 +1161,7 @@ function GraphVisualizerPage() {
 
                 <button
                   onClick={runSelectedAlgorithm}
-                  disabled={!startNode || graph.nodes.length === 0}
+                  disabled={graph.nodes.length === 0}
                   className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   <Search className="w-4 h-4" />
@@ -1201,9 +1267,7 @@ function GraphVisualizerPage() {
                   <div className="flex justify-between">
                     <span>Directed:</span>
                     <span
-                      className={
-                        graph.isDirected ? "text-green-600" : "text-red-600"
-                      }
+                      className={graph.isDirected ? "text-green-600" : "text-red-600"}
                     >
                       {graph.isDirected ? "Yes" : "No"}
                     </span>
@@ -1211,9 +1275,7 @@ function GraphVisualizerPage() {
                   <div className="flex justify-between">
                     <span>Weighted:</span>
                     <span
-                      className={
-                        graph.isWeighted ? "text-green-600" : "text-red-600"
-                      }
+                      className={graph.isWeighted ? "text-green-600" : "text-red-600"}
                     >
                       {graph.isWeighted ? "Yes" : "No"}
                     </span>
@@ -1275,7 +1337,6 @@ function GraphVisualizerPage() {
                   />
                 )}
               </div>
-             
 
               {/* Current Step Info */}
               {algorithmSteps.length > 0 &&
@@ -1337,6 +1398,12 @@ function GraphVisualizerPage() {
                       <div>
                         <strong>Visited nodes:</strong>{" "}
                         {algorithmResult.visited.size}
+                      </div>
+                    )}
+                    {selectedAlgorithm === 'kruskal' && algorithmResult.mstWeight !== undefined && (
+                      <div>
+                        <strong>Minimum Spanning Tree Weight:</strong>{" "}
+                        {algorithmResult.mstWeight}
                       </div>
                     )}
                   </div>
@@ -1754,6 +1821,45 @@ def dfs_iterative(graph, start):
     
     return visited`,
 
+    kruskal: `class DSU:
+    def __init__(self, n):
+        self.parent = list(range(n))
+
+    def find(self, i):
+        if self.parent[i] == i:
+            return i
+        self.parent[i] = self.find(self.parent[i]) # Path compression
+        return self.parent[i]
+
+    def union(self, i, j):
+        root_i = self.find(i)
+        root_j = self.find(j)
+        if root_i != root_j:
+            self.parent[root_j] = root_i
+            return True
+        return False
+
+def kruskals_algorithm(nodes, edges):
+    """Kruskal's algorithm for Minimum Spanning Tree"""
+    # Sort edges by weight
+    sorted_edges = sorted(edges, key=lambda edge: edge['weight'])
+    
+    dsu = DSU(len(nodes))
+    mst = []
+    mst_weight = 0
+    
+    node_map = {node['id']: i for i, node in enumerate(nodes)}
+
+    for edge in sorted_edges:
+        from_node_idx = node_map[edge['from']]
+        to_node_idx = node_map[edge['to']]
+        
+        if dsu.union(from_node_idx, to_node_idx):
+            mst.append(edge)
+            mst_weight += edge['weight']
+            
+    return mst, mst_weight`,
+
     dijkstra: `import heapq
 
 def dijkstra(graph, start):
@@ -1818,10 +1924,6 @@ def get_shortest_path(parents, start, end):
                 raise ValueError("Graph contains negative cycle")
     
     return distances, parents`,
-    kruskal: "# Kruskal's algorithm implementation not available",
-    prim: "# Prim's algorithm implementation not available",
-    topological: "# Topological sort implementation not available",
-    "floyd-warshall": "# Floyd-Warshall algorithm implementation not available",
   };
 
   return codes[algorithm] || "# Algorithm implementation not available";
